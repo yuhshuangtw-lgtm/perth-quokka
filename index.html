@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Perth Field Log</title>
+<meta name="description" content="2026/10/24–10/31 西澳伯斯遠端工作 × 自駕行程：即時狀態、每日時間軸、一鍵導航。">
+<meta name="theme-color" content="#0a0c0f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PER/26">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230a0c0f'/%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='%23ff4f9a' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%2334e3cf'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 預設深色（數位遊牧夜間模式），可切換淺色 */
+:root{
+  --bg:#0a0c0f; --surface:#11151a; --surface-2:#161b21; --line:#222a32; --line-2:#2c3640;
+  --ink:#e9eef3; --muted:#8693a0; --dim:#66717c;
+  --pink:#ff4f9a; --pink-dim:rgba(255,79,154,.14); --cyan:#34e3cf; --cyan-dim:rgba(52,227,207,.12);
+  --amber:#ffb547; --amber-dim:rgba(255,181,71,.12); --violet:#9aa6ff; --violet-dim:rgba(154,166,255,.12);
+  --on-accent:#0a0c0f;
+  --grid:rgba(255,255,255,.035);
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --disp:"Space Grotesk","Noto Sans TC",system-ui,sans-serif;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --bg:#f3f4f1; --surface:#ffffff; --surface-2:#f7f8f5; --line:#e2e4df; --line-2:#d3d6d0;
+  --ink:#0e1114; --muted:#5f6a73; --dim:#97a0a8;
+  --pink:#e0337f; --pink-dim:rgba(224,51,127,.10); --cyan:#0a8f84; --cyan-dim:rgba(10,143,132,.10);
+  --amber:#b86e00; --amber-dim:rgba(184,110,0,.10); --violet:#4a57c9; --violet-dim:rgba(74,87,201,.09);
+  --on-accent:#ffffff;
+  --grid:rgba(0,0,0,.04);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC",system-ui,-apple-system,sans-serif;line-height:1.55;font-size:15px;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:32px 32px}
+a{color:inherit}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+.mono{font-family:var(--mono)}
+.k{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* Hero */
+.hero{position:relative;padding:calc(12px + env(safe-area-inset-top)) 0 18px;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero::before{content:"";position:absolute;inset:auto -20% -60% -20%;height:120%;
+  background:radial-gradient(ellipse at 30% 100%,rgba(255,79,154,.38),transparent 55%),radial-gradient(ellipse at 85% 100%,rgba(52,227,207,.22),transparent 50%);pointer-events:none}
+.hero-top{display:flex;justify-content:space-between;align-items:center;position:relative}
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.1em;display:flex;align-items:center;gap:8px}
+.brand i{width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 10px var(--pink)}
+.icon-btn{border:1px solid var(--line-2);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;min-height:38px;min-width:38px;font:500 12px var(--mono);cursor:pointer;letter-spacing:.05em}
+.hero h1{position:relative;margin:16px 0 0;font-family:var(--disp);font-weight:700;font-size:clamp(34px,10vw,60px);line-height:.95;letter-spacing:-.03em}
+.hero h1 span{background:linear-gradient(90deg,var(--pink),#ff9ac6 55%,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .sub{position:relative;margin:8px 0 0;font-size:14px;color:var(--muted)}
+.readout{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:14px}
+.readout div{background:color-mix(in srgb,var(--surface) 92%,transparent);padding:7px 11px;min-width:0}
+.readout b{display:block;font:700 17px var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.coords{position:relative;margin-top:8px;font:400 11px var(--mono);color:var(--dim);letter-spacing:.06em}
+
+/* Status */
+.now{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden}
+.now::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(var(--pink),var(--cyan))}
+.now-label{font:500 11px var(--mono);letter-spacing:.14em;color:var(--pink);text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.dot-live{width:7px;height:7px;border-radius:50%;background:var(--pink);animation:blink 1.4s steps(2,start) infinite}
+@keyframes blink{to{visibility:hidden}}
+@media (prefers-reduced-motion: reduce){.dot-live{animation:none}}
+.now h2{margin:8px 0 4px;font-family:var(--disp);font-size:24px;line-height:1.2;letter-spacing:-.01em}
+.now .meta{color:var(--muted);font-size:13.5px}
+.next{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line-2);display:flex;justify-content:space-between;gap:12px;align-items:center}
+.next b{display:block;font-size:15px;margin-top:2px}
+.countdown{font:700 20px var(--mono);color:var(--cyan);white-space:nowrap;text-align:right}
+.banner{margin-top:10px;border-radius:10px;padding:9px 12px;font-size:13px;display:flex;gap:10px;align-items:baseline;border:1px solid transparent}
+.banner .k{color:inherit;flex:none}
+.banner.work{background:var(--violet-dim);color:var(--violet)}
+.banner.car{background:var(--cyan-dim);color:var(--cyan)}
+.banner.warn{background:var(--amber-dim);color:var(--amber)}
+
+/* Section */
+section{scroll-margin-top:12px}
+.view{display:none;animation:fade .18s ease-out}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}}
+@media (prefers-reduced-motion: reduce){.view{animation:none}}
+/* 非行程分頁：頁首縮成精簡列，內容直接上來 */
+body:not([data-view="plan"]) .hero h1,body:not([data-view="plan"]) .hero .sub,body:not([data-view="plan"]) .hero .coords{display:none}
+body:not([data-view="plan"]) .hero{padding-bottom:14px}
+body:not([data-view="plan"]) .hero .readout{margin-top:12px}
+.view > .section-title:first-child{margin-top:22px}
+.back{display:inline-flex;align-items:center;min-height:40px}
+.section-title{display:flex;align-items:baseline;justify-content:space-between;margin:34px 0 12px;gap:10px}
+.section-title h2{margin:0;font-family:var(--disp);font-size:22px;letter-spacing:-.01em}
+.section-title h2 small{font:500 11px var(--mono);color:var(--pink);letter-spacing:.12em;margin-right:8px;vertical-align:3px}
+.link{font:500 12px var(--mono);color:var(--cyan);background:none;border:0;cursor:pointer;padding:10px 0;letter-spacing:.04em;text-decoration:none}
+
+/* Day tabs */
+.days{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 16px 10px;margin:0 -16px;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.day-tab{scroll-snap-align:start;flex:none;width:74px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 8px 7px;text-align:left;cursor:pointer;position:relative;font-family:var(--mono)}
+.day-tab .d{font-size:10.5px;color:var(--muted);letter-spacing:.08em}
+.day-tab .n{font-size:20px;font-weight:700;line-height:1.2}
+.day-tab .w{font-size:10.5px;color:var(--muted)}
+.day-tab .i{margin-top:6px;height:3px;border-radius:2px;background:var(--line-2)}
+.day-tab .i.work{background:var(--violet)} .day-tab .i.off{background:var(--pink)}
+.day-tab[aria-selected="true"]{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink),0 0 18px rgba(255,79,154,.25)}
+.day-tab .today{position:absolute;top:-8px;right:6px;background:var(--cyan);color:var(--on-accent);font-size:9px;border-radius:4px;padding:1px 5px;font-weight:700;letter-spacing:.08em}
+
+.day-head{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:4px}
+.day-head h3{margin:0;font-family:var(--disp);font-size:19px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font:500 11px var(--mono);letter-spacing:.04em;border-radius:6px;padding:3px 8px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.tag.off{color:var(--pink);border-color:color-mix(in srgb,var(--pink) 40%,transparent);background:var(--pink-dim)}
+.tag.work{color:var(--violet);border-color:color-mix(in srgb,var(--violet) 40%,transparent);background:var(--violet-dim)}
+.tag.car{color:var(--cyan);border-color:color-mix(in srgb,var(--cyan) 40%,transparent);background:var(--cyan-dim)}
+.tag.foot{color:var(--amber);border-color:color-mix(in srgb,var(--amber) 40%,transparent);background:var(--amber-dim)}
+.notes{margin:10px 0 0;padding:0;list-style:none}
+.notes li{font-size:13px;color:var(--amber);border-left:2px solid var(--amber);background:var(--amber-dim);border-radius:0 8px 8px 0;padding:7px 10px;margin-top:6px}
+
+/* Timeline */
+.tl{list-style:none;margin:14px 0 0;padding:0;position:relative}
+.tl::before{content:"";position:absolute;left:58px;top:10px;bottom:10px;width:1px;background:var(--line-2)}
+.ev{display:grid;grid-template-columns:44px 30px 1fr;gap:0 8px;margin-bottom:10px;position:relative}
+.ev .time{font:500 13px var(--mono);text-align:right;padding-top:12px;color:var(--ink)}
+.ev .time small{display:block;font-size:10.5px;color:var(--dim)}
+.ev .ico{width:30px;height:20px;margin-top:12px;border-radius:5px;background:var(--bg);border:1px solid var(--line-2);display:grid;place-items:center;font:700 8.5px var(--mono);letter-spacing:.04em;color:var(--muted);z-index:1}
+.ev .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 13px;min-width:0}
+.ev .card h4{margin:0;font-size:15px;font-weight:700;line-height:1.4}
+.ev .card p{margin:3px 0 0;font-size:13px;color:var(--muted)}
+.ev.work .card{background:repeating-linear-gradient(135deg,var(--violet-dim) 0 8px,transparent 8px 16px),var(--surface);border-color:color-mix(in srgb,var(--violet) 35%,transparent)}
+.ev.work .card h4,.ev.work .ico{color:var(--violet)}
+.ev.hi .ico{color:var(--pink);border-color:var(--pink)}
+.ev.hi .card h4::after{content:" ★";color:var(--pink);font-size:12px}
+.ev.past{opacity:.38}
+.ev.current .ico{background:var(--pink);border-color:var(--pink);color:var(--on-accent);box-shadow:0 0 12px var(--pink)}
+.ev.current .card{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink),0 0 24px rgba(255,79,154,.18)}
+.ev.current .time{color:var(--pink)}
+.now-badge{display:inline-block;background:var(--pink);color:var(--on-accent);font:700 9.5px var(--mono);letter-spacing:.1em;border-radius:4px;padding:2px 5px;margin-right:6px;vertical-align:2px}
+.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.btn{display:inline-flex;align-items:center;gap:6px;min-height:38px;text-decoration:none;font:500 12px var(--mono);letter-spacing:.03em;border-radius:8px;padding:7px 11px;background:var(--cyan);color:var(--on-accent);border:1px solid var(--cyan);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--cyan)}
+.btn.big{padding:10px 16px;font-size:13.5px;min-height:44px}
+
+/* Boxes */
+.grid{display:grid;gap:10px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.box h3{margin:0 0 8px;font-family:var(--disp);font-size:17px;display:flex;align-items:center;gap:10px}
+.box h3 .k{color:var(--pink)}
+.box p,.box li{font-size:14px}
+.box ul{margin:6px 0 0;padding-left:18px}
+.box li{margin:4px 0}
+.flow{display:grid;gap:6px;margin-top:8px}
+.step{display:flex;gap:10px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:13.5px}
+.step .n{flex:none;font:700 11px var(--mono);color:var(--pink);min-width:34px;padding-top:2px}
+.step .sub{color:var(--muted)}
+.rules{list-style:none;padding:0!important}
+.rules li{display:flex;gap:10px}
+.rules .m{font:700 12px var(--mono);flex:none;width:18px}
+.do .m{color:var(--cyan)} .dont .m{color:var(--pink)}
+.check{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px;cursor:pointer}
+.check:last-child{border-bottom:0}
+.check input{appearance:none;-webkit-appearance:none;width:18px;height:18px;border:1.5px solid var(--line-2);border-radius:4px;flex:none;display:grid;place-items:center;margin:0;cursor:pointer}
+.check input:checked{background:var(--cyan);border-color:var(--cyan)}
+.check input:checked::after{content:"";width:9px;height:5px;border:2px solid var(--on-accent);border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.check input:checked + span{text-decoration:line-through;color:var(--dim)}
+.stay{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.stay:last-child{border-bottom:0}
+.stay b{display:block;font-size:14.5px}
+.stay span{font:400 11.5px var(--mono);color:var(--muted)}
+.crew{display:grid;gap:6px;margin-top:4px}
+.member{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.member:last-child{border-bottom:0}
+.member b{font-weight:500}
+footer{text-align:center;color:var(--dim);font:400 11px var(--mono);letter-spacing:.06em;padding:30px 16px calc(90px + env(safe-area-inset-bottom))}
+
+/* Bottom nav */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:5;max-width:100%;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 0 calc(8px + env(safe-area-inset-bottom))}
+.tabbar a{flex:1;max-width:160px;text-decoration:none;font:500 9.5px var(--mono);letter-spacing:.14em;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;position:relative;min-height:48px;justify-content:center}
+.tabbar a b{font:700 15px "Noto Sans TC",sans-serif;color:var(--muted);letter-spacing:.02em}
+.tabbar a[aria-current="page"] b{color:var(--ink)}
+.tabbar a[aria-current="page"]{color:var(--pink)}
+.tabbar a[aria-current="page"]::before{content:"";position:absolute;top:-9px;left:30%;right:30%;height:2px;border-radius:2px;background:var(--pink);box-shadow:0 0 10px var(--pink)}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <span class="brand"><i></i>PER/26 · FIELD LOG</span>
+      <div style="display:flex;gap:6px">
+        <button class="icon-btn" id="themeBtn" aria-label="切換深淺色">◐</button>
+        <button class="icon-btn" id="shareBtn">SHARE ↗</button>
+      </div>
+    </div>
+    <h1>Work from<br><span>Pink Lake.</span></h1>
+    <p class="sub">西澳伯斯 · 遠端工作 × 自駕 × 跳島 · 10/24 – 10/31</p>
+    <div class="readout">
+      <div><span class="k">Perth</span><b id="perthClock">--:--</b></div>
+      <div><span class="k">Crew</span><b id="crewPill">03</b></div>
+      <div><span class="k">Ride</span><b id="ridePill">RAV4</b></div>
+    </div>
+    <div class="coords">31.9523°S 115.8613°E · UTC+8 = TPE · 8D/7N</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="view" id="plan" data-view="plan">
+  <div class="now" id="nowCard" aria-live="polite"></div>
+
+  <div id="schedule" style="scroll-margin-top:12px">
+    <div class="section-title">
+      <h2><small>PLAN</small>每日行程</h2>
+      <button class="link" id="todayBtn">↺ TODAY</button>
+    </div>
+    <div class="days" id="dayTabs" role="tablist"></div>
+    <div id="dayView"></div>
+  </div>
+  </section>
+
+  <section class="view" id="island" data-view="island">
+    <div class="section-title"><h2><small>DAY 04 · 10/27 (二)</small><br>羅特尼斯島攻略</h2><a class="link back" href="#plan" data-day="3">← Day 4 行程</a></div>
+    <div class="grid">
+      <div class="box">
+        <h3><span class="k">FRY</span>船班</h3>
+        <p style="margin:0">SeaLink · Fremantle <b>B-Shed</b> 出發，船票已訂妥。</p>
+        <div class="flow">
+          <div class="step"><span class="n">09:45</span><div><b>去程</b> B-Shed → Thomson Bay（約 30 分）<br><span class="sub">建議 09:15 從 Quest 出發步行，開船前 15–20 分報到。</span></div></div>
+          <div class="step"><span class="n">16:00</span><div><b>回程</b> Thomson Bay → B-Shed<br><span class="sub">15:30 前還車並抵達碼頭。</span></div></div>
+        </div>
+        <div class="actions"><a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=B+Shed+Fremantle&travelmode=walking">↗ 步行到 B-Shed</a></div>
+      </div>
+
+      <div class="box">
+        <h3><span class="k">BKE</span>島上移動策略</h3>
+        <div class="flow">
+          <div class="step"><span class="n">IF</span><div>登島後<b>直奔 Pedal &amp; Flipper</b> 臨櫃詢問有無釋出的 <b>e-Bike</b>（島上多坡，電輔省力很多）。</div></div>
+          <div class="step"><span class="n">ELSE</span><div>改租 <b>Adult Bike</b> ＋ 買 <b>Island Explorer</b> 隨上隨下巴士一日券，騎累了就搭車（是否可載單車以現場規定為準）。</div></div>
+          <div class="step"><span class="n">13:00</span><div>回到 <b>Visitor Centre</b> 參加導覽，下午再騎往 The Basin / Pinky Beach。</div></div>
+        </div>
+        <div class="actions"><a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Pedal+and+Flipper+Rottnest+Island">↗ Pedal &amp; Flipper</a></div>
+      </div>
+
+      <div class="box">
+        <h3><span class="k">QKA</span>Quokka 互動守則</h3>
+        <ul class="rules">
+          <li class="dont"><span class="m">✕</span><span>嚴禁主動觸摸或餵食（違者可被罰款，人類食物也會讓牠們生病）</span></li>
+          <li class="do"><span class="m">✓</span><span>蹲低身子，與牠視線平行</span></li>
+          <li class="do"><span class="m">✓</span><span>用廣角鏡頭 / 手機 0.5x，保持距離也能同框</span></li>
+          <li class="do"><span class="m">✓</span><span>耐心等待牠主動靠近，再按快門自拍</span></li>
+        </ul>
+        <div class="flow"><div class="step"><span class="n">13:00</span><div><b>Meet the Quokka Tour</b><br><span class="sub">遊客中心免費志工導覽，最容易遇到 Quokka 的方式。</span></div></div></div>
+      </div>
+
+      <div class="box">
+        <h3><span class="k">CHK</span>登島檢查表</h3>
+        <div id="rottoCheck"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="info" data-view="info">
+    <div class="section-title"><h2><small>INFO</small>住宿 · 旅伴 · 清單</h2></div>
+    <div class="grid">
+      <div class="box" id="stays"><h3>住宿</h3></div>
+      <div class="box">
+        <h3><span class="k">CRW</span>旅伴</h3>
+        <div class="crew">
+          <div class="member"><b>旅伴 C</b><span class="tag car">→ 10/26 18:00</span></div>
+          <div class="member"><b>旅伴 A</b><span class="tag">FULL</span></div>
+          <div class="member"><b>旅伴 B</b><span class="tag">FULL</span></div>
+        </div>
+        <p style="color:var(--muted);margin:10px 0 0;font-size:13px">10/24–10/26 RAV4 自駕；10/26 18:00 旅伴 C 開車去機場還車後，全程靠雙腳、火車、渡輪與 Uber。</p>
+      </div>
+      <div class="box">
+        <h3><span class="k">BUY</span>伴手禮清單</h3>
+        <div id="giftCheck"></div>
+      </div>
+      <div class="box">
+        <h3><span class="k">README</span>小提醒</h3>
+        <ul>
+          <li>西澳與台灣同為 UTC+8、無夏令時間，工作時段 <b class="mono">11:00–19:00</b> 直接對齊。</li>
+          <li>10 月底日落約 18:50，下班時剛好是晚霞時段。</li>
+          <li>自駕：靠左行駛，黃昏後鄉間道路袋鼠出沒，盡量天黑前抵達。</li>
+          <li>Transperth 火車：Fremantle ⇄ Perth 約 30 分，Cottesloe 在中途。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  ALL TIMES AWST (UTC+8) · STAY CURIOUS, DON'T FEED THE QUOKKA<br>
+  <span id="simNote"></span>
+</footer>
+
+<nav class="tabbar" aria-label="分頁">
+  <a href="#plan" data-v="plan"><b>行程</b>PLAN</a>
+  <a href="#island" data-v="island"><b>羅島</b>ISLAND</a>
+  <a href="#info" data-v="info"><b>資訊</b>INFO</a>
+</nav>
+
+<script>
+/* ===================== 行程資料（要改行程只改這裡） ===================== */
+// Perth CBD 飯店確定後填入名稱，導航會自動帶入
+const PERTH_HOTEL = '';
+const perthHotel = PERTH_HOTEL || 'Perth CBD';
+const perthHotelLabel = PERTH_HOTEL || 'Perth CBD 飯店（待填）';
+
+// type: flight | car | walk | train | ferry | uber | work | food | sight | hotel | bike
+// nav: [目的地, 交通方式 driving|walking|transit]
+const DAYS = [
+  { date:'2026-10-24', dow:'六', kind:'off', mode:'car', crew:3, title:'抵達伯斯 · Kings Park', 
+    notes:['凌晨抵達，請事先與 Civic Gardens Villa 確認提早入住 / 自助入住方式。'],
+    events:[
+      {t:'03:45', type:'flight', title:'抵達伯斯機場 PER', desc:'入境、領行李。國際線航廈為 T1。'},
+      {t:'04:30', type:'car', title:'取車 RAV4', desc:'取車前拍照記錄車況、確認油量與還車規定。'},
+      {t:'05:15', type:'car', title:'開往 Cannington 住宿', desc:'約 15–20 分鐘。', nav:['Civic Gardens Villa Cannington','driving']},
+      {t:'05:45', end:'12:00', type:'hotel', title:'入住 Civic Gardens Villa 補眠', desc:'睡飽再出門'},
+      {t:'13:00', end:'16:00', type:'sight', title:'Kings Park & Botanic Garden', desc:'State War Memorial 觀景台俯瞰天鵝河與市區、Federation Walkway 樹頂步道。', nav:['Kings Park and Botanic Garden','driving'], hi:true},
+      {t:'16:30', type:'food', title:'市區 / Carousel 採買', desc:'Westfield Carousel 就在住宿旁：Woolworths / Coles 買水、零食、明天公路旅行的點心。', nav:['Westfield Carousel Cannington','driving']},
+      {t:'19:00', type:'hotel', title:'晚餐、早點休息', desc:'明早 08:00 出發北上。'},
+    ]},
+  { date:'2026-10-25', dow:'日', kind:'off', mode:'car', crew:3, title:'Indian Ocean Drive · 尖峰石陣', 
+    notes:['Geraldton 段約 200 km，黃昏後袋鼠出沒，盡量 19:00 前抵達。'],
+    events:[
+      {t:'07:30', type:'hotel', title:'早餐、退房', desc:'Civic Gardens Villa'},
+      {t:'08:00', end:'11:30', type:'car', title:'Indian Ocean Drive 北上', desc:'沿海公路約 2.5–3 小時，可順停 Lancelin 白沙丘（選配）。', nav:['Cervantes WA','driving']},
+      {t:'11:30', type:'food', title:'Lobster Shack 午餐', desc:'Cervantes 現撈西澳岩龍蝦，營業時間以官網為準。', nav:['The Lobster Shack Cervantes','driving'], hi:true},
+      {t:'13:30', end:'15:45', type:'sight', title:'The Pinnacles 尖峰石陣', desc:'Nambung 國家公園（入園按車收費），可開 4 km 環線車道或步行，Discovery Centre 有展覽。', nav:['Pinnacles Desert Discovery Centre','driving'], hi:true},
+      {t:'16:00', end:'19:00', type:'car', title:'北上 Geraldton', desc:'約 2.5–3 小時。', nav:['The Railway Cottage Geraldton','driving']},
+      {t:'19:00', type:'hotel', title:'入住 The Railway Cottage', desc:'晚餐、休息。明早 07:00 出發看粉紅湖！'},
+    ]},
+  { date:'2026-10-26', dow:'一', kind:'off', mode:'car', crew:3, crewAfter:{t:'18:00', n:2}, title:'粉紅湖 · 南下 Fremantle', 
+    notes:['台灣光復節補假（10/25 逢週日補 10/26），不用工作。','Hutt Lagoon → Fremantle 約 530 km / 6 小時，10:30 出發 17:00 到仍偏緊，司機記得輪流換手。'],
+    events:[
+      {t:'07:00', type:'car', title:'出發前往粉紅湖', desc:'Geraldton → Port Gregory 約 1 小時。', nav:['Hutt Lagoon Pink Lake Lookout','driving']},
+      {t:'08:00', end:'10:15', type:'sight', title:'Hutt Lagoon 粉紅湖', desc:'顏色受陽光、雲量與水位影響，晴天上午最粉。留在觀景區，勿踩進湖床鹽殼。', nav:['Hutt Lagoon Pink Lake Lookout','driving'], hi:true},
+      {t:'10:30', end:'12:00', type:'car', title:'南下 Geraldton', desc:'約 1.5 小時，可在 Geraldton 海濱補給、加油。', nav:['Geraldton Foreshore','driving']},
+      {t:'12:00', type:'food', title:'Geraldton 午餐 · 換手', desc:'吃飽換司機，接下來是最長的一段。'},
+      {t:'12:45', end:'17:00', type:'car', title:'Brand Hwy 南下 Fremantle', desc:'約 4 小時。中途可在 Jurien Bay 或 Cervantes 停下休息、看海。', nav:['Quest Fremantle','driving']},
+      {t:'17:00', type:'hotel', title:'抵達 Quest Fremantle 放行李', desc:'入住，卸下全部行李（還車後就沒車了）。', nav:['Quest Fremantle','driving']},
+      {t:'18:00', type:'flight', title:'旅伴 C 開車去機場返航', desc:'約 30–40 分鐘到 PER，記得還車前加油。此後全程無車！', nav:['Perth Airport','driving']},
+      {t:'18:30', type:'food', title:'Fremantle 步行晚餐', desc:'South Terrace 一帶餐廳多；順路去 Bathers Beach 看日落（約 18:50）。', nav:['Bathers Beach Fremantle','walking']},
+    ]},
+  { date:'2026-10-27', dow:'二', kind:'leave', mode:'foot', crew:2, title:'Rottnest Island 找 Quokka', 
+    notes:['建議排休一天。船班、租車與 Quokka 守則請看「羅島」分頁。'],
+    events:[
+      {t:'09:15', type:'walk', title:'步行到 B-Shed 碼頭', desc:'Quest → B-Shed 約 10–15 分鐘，開船前 15–20 分報到。', nav:['B Shed Fremantle','walking']},
+      {t:'09:45', type:'ferry', title:'SeaLink 渡輪出發', desc:'B-Shed → Thomson Bay 約 30 分。', hi:true, guide:true},
+      {t:'10:20', type:'bike', title:'Pedal & Flipper 租車', desc:'先問 e-Bike；沒有就租 Adult Bike ＋ Island Explorer 一日券。', nav:['Pedal and Flipper Rottnest Island','walking'], guide:true},
+      {t:'10:45', end:'12:45', type:'sight', title:'騎車探索 · 找 Quokka', desc:'Thomson Bay 周邊樹蔭下常見 Quokka；可先騎去 The Basin、Pinky Beach。', nav:['The Basin Rottnest Island','walking']},
+      {t:'13:00', type:'sight', title:'Meet the Quokka Tour', desc:'遊客中心免費志工導覽。', nav:['Rottnest Island Visitor Centre','walking'], hi:true, guide:true},
+      {t:'14:00', end:'15:15', type:'sight', title:'自由時間', desc:'Wadjemup Lighthouse、海灘拍照、浮潛；蹲低等 Quokka 主動靠近自拍。', nav:['Wadjemup Lighthouse','walking']},
+      {t:'15:15', type:'bike', title:'還車、回碼頭', desc:'15:30 前到 Thomson Bay 碼頭。'},
+      {t:'16:00', type:'ferry', title:'渡輪返航 Fremantle', desc:'約 30 分。'},
+      {t:'17:00', type:'food', title:'回 Quest 休息、晚餐', desc:'', nav:['Quest Fremantle','walking']},
+    ]},
+  { date:'2026-10-28', dow:'三', kind:'work', mode:'foot', crew:2, title:'Fremantle 監獄 · 海灘晚霞', 
+    notes:['日落約 18:50，下班直奔 Bathers Beach 看晚霞（步行約 10 分）。'],
+    events:[
+      {t:'08:30', end:'10:00', type:'sight', title:'Fremantle Prison', desc:'世界遺產，建議開館即入場，導覽場次以官網為準。', nav:['Fremantle Prison','walking'], hi:true},
+      {t:'10:00', type:'food', title:'Cappuccino Strip 喝咖啡', desc:'South Terrace 咖啡街。', nav:['South Terrace Fremantle','walking']},
+      {t:'10:45', type:'walk', title:'回 Quest 準備上班', desc:'', nav:['Quest Fremantle','walking']},
+      {t:'11:00', end:'19:00', type:'work', title:' Quest Fremantle 遠端工作', desc:'台灣時間 11:00–19:00。'},
+      {t:'19:00', type:'sight', title:'Bathers Beach 晚霞', desc:'', nav:['Bathers Beach Fremantle','walking'], hi:true},
+      {t:'19:45', type:'food', title:'Little Creatures 晚餐', desc:'港邊精釀啤酒廠。', nav:['Little Creatures Brewing Fremantle','walking']},
+    ]},
+  { date:'2026-10-29', dow:'四', kind:'work', mode:'foot', crew:2, title:'移防 Perth CBD · Kings Park 夜景', 
+    notes:['飯店入住時間多為 14:00 後，上午先寄放行李；若無法提早入住，需另找工作空間。'],
+    events:[
+      {t:'08:00', type:'hotel', title:'Quest Fremantle 退房', desc:''},
+      {t:'08:15', type:'walk', title:'步行到 Fremantle 火車站', desc:'約 5–10 分鐘。', nav:['Fremantle Station','walking']},
+      {t:'08:30', type:'train', title:'火車 Fremantle Line → Perth', desc:'約 30 分鐘，到 Perth Station。', nav:['Perth Station','transit']},
+      {t:'09:15', type:'hotel', title:`${perthHotelLabel} 寄放行李`, desc:'', nav:[perthHotel,'walking']},
+      {t:'09:45', end:'10:45', type:'sight', title:'Elizabeth Quay', desc:'天鵝河畔散步、Spanda 雕塑、Bell Tower。', nav:['Elizabeth Quay','walking'], hi:true},
+      {t:'11:00', end:'19:00', type:'work', title:' 飯店遠端工作', desc:'台灣時間 11:00–19:00。'},
+      {t:'19:15', end:'20:30', type:'sight', title:'Kings Park 夜景', desc:'Uber 約 10 分，或步行約 30 分（上坡）。', nav:['Kings Park State War Memorial','walking'], hi:true},
+      {t:'20:30', type:'food', title:'Northbridge 晚餐', desc:'William St 一帶亞洲料理、酒吧多。', nav:['Northbridge Perth','transit']},
+    ]},
+  { date:'2026-10-30', dow:'五', kind:'work', mode:'foot', crew:2, title:'文化中心 · Cottesloe 海景晚餐', 
+    notes:['Cottesloe 週五晚上熱門，海景餐廳建議提前訂位。'],
+    events:[
+      {t:'08:30', end:'10:30', type:'sight', title:'Perth Cultural Centre', desc:'WA Museum Boola Bardip、Art Gallery of WA、State Library，開館時間以官網為準。', nav:['Perth Cultural Centre','walking'], hi:true},
+      {t:'10:45', type:'walk', title:'回飯店準備上班', desc:'', nav:[perthHotel,'walking']},
+      {t:'11:00', end:'19:00', type:'work', title:' 飯店遠端工作', desc:'台灣時間 11:00–19:00。'},
+      {t:'19:00', type:'uber', title:'前往 Cottesloe Beach', desc:'Uber 約 20 分，或火車到 Cottesloe 站再步行約 15 分。', nav:['Cottesloe Beach','transit']},
+      {t:'19:30', type:'food', title:'海景餐廳晚餐', desc:'例如 Indiana Cottesloe、The Cottesloe Beach Hotel。', nav:['Indiana Cottesloe','walking'], hi:true},
+      {t:'21:30', type:'uber', title:'Uber 回飯店', desc:'', nav:[perthHotel,'driving']},
+    ]},
+  { date:'2026-10-31', dow:'六', kind:'off', mode:'foot', crew:2, title:'伴手禮 · 返台', 
+    notes:['航班時間待填：國際線建議起飛前 3 小時抵達 PER T1，Uber 時間請依航班回推。'],
+    events:[
+      {t:'09:00', end:'11:30', type:'food', title:'買伴手禮', desc:'綿羊油（Lanolin）、Lucas Papaw 木瓜膏：Chemist Warehouse / Priceline 通常最划算。', nav:['Chemist Warehouse Perth CBD','walking'], hi:true},
+      {t:'12:00', type:'hotel', title:'退房、寄放行李', desc:''},
+      {t:'12:30', type:'food', title:'午餐 · 最後散步', desc:'Hay Street / Murray Street Mall。', nav:['Hay Street Mall Perth','walking']},
+      {t:'17:00', type:'uber', title:'Uber 直達伯斯機場（時間待確認）', desc:'約 20–25 分鐘到 T1 國際線。', nav:['Perth Airport Terminal 1','driving']},
+      {t:'20:00', type:'flight', title:'搭機返台（時間待確認）', desc:'下次見，Quokka！'},
+    ]},
+];
+
+const STAYS = [
+  {name:'Civic Gardens Villa', area:'Cannington', when:'10/24 – 10/25 · 1 晚', q:'Civic Gardens Villa Cannington'},
+  {name:'The Railway Cottage', area:'Geraldton', when:'10/25 – 10/26 · 1 晚', q:'The Railway Cottage Geraldton'},
+  {name:'Quest Fremantle', area:'Fremantle', when:'10/26 – 10/29 · 3 晚', q:'Quest Fremantle'},
+  {name:perthHotelLabel, area:'Perth CBD', when:'10/29 – 10/31 · 2 晚', q:perthHotel},
+];
+
+const CHECKLISTS = {
+  rottoCheck:['船票（截圖 / 電子票）','防曬乳、帽子、太陽眼鏡','水壺（島上補給點有限）','信用卡（租車押金）','手機廣角 / 0.5x 鏡頭、行動電源','泳衣 & 浮潛裝備（選配）'],
+  giftCheck:['綿羊油 Lanolin','Lucas Papaw 木瓜膏','Tim Tam / 澳洲零食','Quokka 周邊小物'],
+};
+
+/* ===================== 以下為程式邏輯 ===================== */
+const ICON = {flight:'FLT',car:'DRV',walk:'WLK',train:'RAIL',ferry:'FRY',uber:'UBR',work:'WRK',food:'EAT',sight:'SEE',hotel:'BED',bike:'BKE'};
+const KIND = {off:['OFF · 放假','off'], work:['WORK · 11–19','work'], leave:['PTO · 建議排休','off']};
+const MODE_LABEL = {driving:'開車導航', walking:'步行導航', transit:'大眾運輸'};
+const $ = s => document.querySelector(s);
+const toMin = t => { const [h,m] = t.split(':').map(Number); return h*60+m; };
+const navUrl = (q,mode) => `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(q)}&travelmode=${mode}`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// 取得伯斯當地時間；可用 ?now=2026-10-27T10:30 模擬
+const simParam = new URLSearchParams(location.search).get('now');
+function perthNow(){
+  if (simParam && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(simParam)) {
+    const [d,t] = simParam.split('T'); return {date:d, min:toMin(t), sim:true};
+  }
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Australia/Perth',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return {date:`${p.year}-${p.month}-${p.day}`, min:(+p.hour)*60+(+p.minute)};
+}
+const dayDiff = (a,b) => Math.round((Date.parse(b)-Date.parse(a))/864e5);
+const fmtMin = m => `${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+function fmtShort(m){
+  if (m >= 1440) return `${Math.floor(m/1440)}d ${Math.floor(m%1440/60)}h`;
+  return m >= 60 ? `${Math.floor(m/60)}h ${String(m%60).padStart(2,'0')}m` : `${m}m`;
+}
+function fmtDur(m){
+  if (m < 60) return `${m} 分`;
+  const d = Math.floor(m/1440), h = Math.floor(m%1440/60), mm = m%60;
+  if (d) return `${d} 天 ${h} 小時`;
+  return mm ? `${h} 小時 ${mm} 分` : `${h} 小時`;
+}
+
+// 依時間判斷目前/下一個活動（工作時段不算「下一個」，以免遮住實際行程）
+function locate(now){
+  const flat = [];
+  DAYS.forEach((d,di) => d.events.forEach((e,ei) => flat.push({d,di,e,ei,abs:dayDiff(DAYS[0].date,d.date)*1440+toMin(e.t)})));
+  const nowAbs = dayDiff(DAYS[0].date, now.date)*1440 + now.min;
+  const main = flat.filter(x => x.e.type !== 'work');
+  let cur = null, next = null;
+  for (const x of main) { if (x.abs <= nowAbs) cur = x; else { next = x; break; } }
+  // 目前活動若已過 end，且離下個活動還久，視為空檔
+  if (cur && cur.e.end) { const endAbs = cur.abs - toMin(cur.e.t) + toMin(cur.e.end); if (nowAbs >= endAbs) cur = {...cur, ended:true}; }
+  return {cur, next, nowAbs};
+}
+
+function currentDayIndex(now){ return DAYS.findIndex(d => d.date === now.date); }
+function crewAt(day, min){ return day.crewAfter && min >= toMin(day.crewAfter.t) ? day.crewAfter.n : day.crew; }
+
+function renderNow(){
+  const now = perthNow();
+  $('#perthClock').textContent = `${fmtMin(now.min)}${now.sim?'*':''}`;
+  $('#simNote').textContent = now.sim ? `目前為模擬時間 ${simParam}，移除網址 ?now= 參數即恢復。` : '';
+  const di = currentDayIndex(now);
+  const start = DAYS[0], last = DAYS[DAYS.length-1];
+  const {cur, next, nowAbs} = locate(now);
+  let html = '';
+
+  if (nowAbs < 0) {
+    const first = start.events[0];
+    const left = -nowAbs + toMin(first.t);
+    html = `<div class="now-label"><span class="dot-live"></span>T-minus · 出發倒數</div>
+      <h2>還有 ${fmtDur(left)}</h2>
+      <div class="meta">${start.date.slice(5).replace('-','/')} (${start.dow}) ${first.t} ${esc(first.title)}</div>
+      <div class="banner car"><span class="k">DRV</span><div>前 3 天 RAV4 自駕，10/26 晚上之後無車。記得帶國際駕照！</div></div>`;
+    $('#crewPill').textContent = '03'; $('#ridePill').textContent = 'RAV4';
+  } else if (dayDiff(last.date, now.date) > 0 || (!next && cur && cur.d === last && cur.ended)) {
+    html = `<div class="now-label">Mission complete</div><h2>平安到家，下次見 Quokka。</h2>
+      <div class="meta">把照片丟進群組吧。</div>`;
+    $('#crewPill').textContent = '02'; $('#ridePill').textContent = '—';
+  } else {
+    const day = di >= 0 ? DAYS[di] : (cur ? cur.d : start);
+    const crew = di >= 0 ? crewAt(day, now.min) : 2;
+    $('#crewPill').textContent = String(crew).padStart(2,'0');
+    const e = cur && !cur.ended ? cur.e : null;
+    html = `<div class="now-label"><span class="dot-live"></span>${di>=0?`Day ${di+1} · ${day.date.slice(5).replace('-','/')} (${day.dow})`:'現在'}</div>`;
+    if (e) {
+      html += `<h2>${esc(e.title)}</h2>
+        <div class="meta">${e.t}${e.end?` – ${e.end}`:''}${e.desc?` · ${esc(e.desc)}`:''}</div>`;
+      if (e.nav) html += `<div class="actions"><a class="btn big" target="_blank" rel="noopener" href="${navUrl(...e.nav)}">↗ ${MODE_LABEL[e.nav[1]]}</a></div>`;
+    } else {
+      html += `<h2>自由時間</h2><div class="meta">休息一下，看看下一站。</div>`;
+    }
+    if (next) {
+      const sameDay = next.d.date === now.date;
+      html += `<div class="next"><div><span class="k">Next · ${sameDay?'':`${next.d.date.slice(5).replace('-','/')} `}${next.e.t}</span>
+        <b>${esc(next.e.title)}</b></div>
+        <div style="text-align:right"><div class="countdown">${fmtShort(next.abs-nowAbs)}</div>
+        ${next.e.nav?`<a class="btn ghost" style="margin-top:6px" target="_blank" rel="noopener" href="${navUrl(...next.e.nav)}">導航</a>`:''}</div></div>`;
+    }
+    if (di >= 0 && day.kind === 'work') {
+      const s = toMin('11:00'), en = toMin('19:00');
+      if (now.min >= s && now.min < en) html += `<div class="banner work"><span class="k">WRK</span><div><b>工作時段中</b>（還有 ${fmtDur(en-now.min)} 下班）· 非緊急事項請留言，晚點再回</div></div>`;
+      else if (now.min < s) html += `<div class="banner work"><span class="k">WRK</span><div>今天是工作日，<b>11:00</b> 前要回到辦公地點（還有 ${fmtDur(s-now.min)}）</div></div>`;
+    }
+    if (di >= 0) {
+      const carOn = day.mode === 'car' && !(day.crewAfter && now.min >= toMin(day.crewAfter.t));
+      $('#ridePill').textContent = carOn ? 'RAV4' : 'FOOT';
+      html += carOn ? `<div class="banner car"><span class="k">DRV</span><div>今天有車（RAV4）</div></div>`
+                    : `<div class="banner car"><span class="k">WLK</span><div>無車日：步行 / 火車 / 渡輪 / Uber</div></div>`;
+    }
+  }
+  $('#nowCard').innerHTML = html;
+  return now;
+}
+
+let selected = 0;
+function renderTabs(now){
+  const di = currentDayIndex(now);
+  $('#dayTabs').innerHTML = DAYS.map((d,i) => `
+    <button class="day-tab" role="tab" aria-selected="${i===selected}" data-i="${i}">
+      ${i===di?'<span class="today">TODAY</span>':''}
+      <div class="d">DAY</div><div class="n">${String(i+1).padStart(2,'0')}</div>
+      <div class="w">10/${d.date.slice(8)} ${d.dow}</div><div class="i ${KIND[d.kind][1]}"></div>
+    </button>`).join('');
+  $('#dayTabs').querySelectorAll('.day-tab').forEach(b => b.onclick = () => { selected = +b.dataset.i; render(); });
+}
+
+function renderDay(now){
+  const d = DAYS[selected];
+  const isToday = d.date === now.date;
+  const {cur} = locate(now);
+  const [kl, kc] = KIND[d.kind];
+  const modeTag = d.mode === 'car'
+    ? (d.crewAfter ? `<span class="tag car">DRV → 18:00 起無車</span>` : `<span class="tag car">DRV · RAV4 自駕</span>`)
+    : `<span class="tag foot">WLK · RAIL · FRY · UBR</span>`;
+  const crewTag = d.crewAfter ? `<span class="tag">CREW 03 → 02</span>` : `<span class="tag">CREW 0${d.crew}</span>`;
+  let html = `<div class="day-head">
+    <h3>Day ${selected+1} · ${esc(d.title)}</h3>
+    <div class="tags"><span class="tag ${kc}">${kl}</span>${modeTag}${crewTag}</div>
+    ${d.notes?.length?`<ul class="notes">${d.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}
+  </div><ol class="tl">`;
+  d.events.forEach((e,ei) => {
+    let cls = ['ev'];
+    if (e.type === 'work') cls.push('work');
+    if (e.hi) cls.push('hi');
+    const isCur = isToday && cur && !cur.ended && cur.di === selected && cur.ei === ei;
+    if (isCur) cls.push('current');
+    else if (isToday && e.type !== 'work' && toMin(e.end || e.t) < now.min && !(cur && cur.di===selected && cur.ei===ei)) cls.push('past');
+    html += `<li class="${cls.join(' ')}">
+      <div class="time">${e.t}${e.end?`<small>– ${e.end}</small>`:''}</div>
+      <div class="ico">${ICON[e.type]}</div>
+      <div class="card">
+        <h4>${isCur?'<span class="now-badge">NOW</span>':''}${esc(e.title)}</h4>
+        ${e.desc?`<p>${esc(e.desc)}</p>`:''}
+        ${e.nav||e.guide?`<div class="actions">${e.nav?`<a class="btn" target="_blank" rel="noopener" href="${navUrl(...e.nav)}">↗ ${MODE_LABEL[e.nav[1]]}</a>`:''}${e.guide?`<a class="btn ghost" href="#island">島上攻略 →</a>`:''}</div>`:''}
+      </div></li>`;
+  });
+  $('#dayView').innerHTML = html + '</ol>';
+}
+
+function renderStatic(){
+  $('#stays').innerHTML = '<h3><span class="k">BED</span>住宿</h3>' + STAYS.map(s => `
+    <div class="stay"><div><b>${esc(s.name)}</b><span>${esc(s.area)} · ${esc(s.when)}</span></div>
+    <a class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.q)}">MAP ↗</a></div>`).join('');
+  for (const [id, items] of Object.entries(CHECKLISTS)) {
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem('perth26-'+id) || '{}'); } catch {}
+    const el = document.getElementById(id);
+    el.innerHTML = items.map((t,i) => `<label class="check"><input type="checkbox" data-k="${i}" ${saved[i]?'checked':''}><span>${esc(t)}</span></label>`).join('');
+    el.addEventListener('change', ev => {
+      saved[ev.target.dataset.k] = ev.target.checked;
+      try { localStorage.setItem('perth26-'+id, JSON.stringify(saved)); } catch {}
+    });
+  }
+}
+
+function render(){ const now = renderNow(); renderTabs(now); renderDay(now); }
+function selectToday(scroll){
+  const now = perthNow(), di = currentDayIndex(now);
+  selected = di >= 0 ? di : (dayDiff(DAYS[0].date, now.date) < 0 ? 0 : DAYS.length-1);
+  render();
+  const tab = $(`.day-tab[data-i="${selected}"]`);
+  tab?.scrollIntoView({inline:'center', block:'nearest'});
+  if (scroll) $('#schedule').scrollIntoView({behavior:'smooth'});
+  else setTimeout(() => window.scrollTo(0, 0), 0);
+}
+
+// 分頁切換（用網址 #hash，返回鍵可用、也能直接分享某一頁）
+const VIEWS = ['plan','island','info'];
+function showView(){
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'plan';
+  document.body.dataset.view = v;
+  document.querySelectorAll('.view').forEach(el => el.classList.toggle('active', el.dataset.view === v));
+  document.querySelectorAll('.tabbar a').forEach(a => a.dataset.v === v ? a.setAttribute('aria-current','page') : a.removeAttribute('aria-current'));
+  window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', showView);
+document.querySelector('.back').addEventListener('click', e => { selected = +e.currentTarget.dataset.day; render(); });
+
+$('#todayBtn').onclick = () => selectToday(true);
+$('#shareBtn').onclick = async () => {
+  const data = {title:'Perth 2026 行程', text:'西澳伯斯 10/24–10/31 行程表', url:location.origin + location.pathname};
+  try { if (navigator.share) await navigator.share(data); else { await navigator.clipboard.writeText(data.url); $('#shareBtn').textContent='COPIED'; } } catch {}
+};
+(function theme(){
+  let t = null; try { t = localStorage.getItem('perth26-theme'); } catch {}
+  if (t) document.documentElement.dataset.theme = t;
+  $('#themeBtn').onclick = () => {
+    const dark = document.documentElement.dataset.theme !== 'light';
+    const nt = dark ? 'light' : 'dark';
+    document.documentElement.dataset.theme = nt;
+    try { localStorage.setItem('perth26-theme', nt); } catch {}
+  };
+})();
+
+renderStatic();
+selectToday(false);
+showView();
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+setInterval(render, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+</script>
+</body>
+</html>
